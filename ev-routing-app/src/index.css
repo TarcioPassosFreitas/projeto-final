@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height:100%; margin:0 }
+
+.bg-parallax {
+  background: url('/assets/fundo.jpg') center/cover fixed;
+}
+.bg-overlay {
+  position:absolute; inset:0;
+  background-color:rgba(0,0,0,0.5);
+}

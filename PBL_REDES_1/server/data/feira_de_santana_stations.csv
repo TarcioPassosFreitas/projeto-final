@@ -1,0 +1,101 @@
+id;nomeDoPosto;endereço;latitude;longitude;quantidadeDeVeiculosSimultaneos
+1;EcoCharge Centro;Rua Conselheiro Franco, 150;-12.2550;-38.9650;3
+2;VoltStation Cidade Nova;Avenida Eduardo Fróes da Mota, 500;-12.2315;-38.9580;4
+3;Energia Verde Santa Mônica;Rua São Domingos, 100;-12.2455;-38.9495;2
+4;Recarga Rápida Brasília;Avenida Governador João Durval Carneiro, 1800;-12.2680;-38.9545 sometimes;1
+5;PowerHub Muchila;Rua Castro Alves, 250;-12.2755;-38.9670;3
+6;EletroPosto Jomafa;Avenida Maria Quitéria, 200;-12.2605;-38.9705;2
+7;ChargeMax SIM;Rua Barão do Rio Branco, 450;-12.2520;-38.9605;4
+8;ZapCharge Tomba;Avenida Deputado Francisco José Pinto dos Santos, 700;-12.2665;-38.9820;1
+9;EcoVolt Caseb;Rua Marechal Deodoro, 300;-12.2705;-38.9575;3
+10;SuperCharge Kalilândia;Rua Dr. Sabino Silva, 120;-12.2585;-38.9755;2
+11;GreenPower Ponto Central;Rua Sales Barbosa, 350;-12.2530;-38.9640;4
+12;EletroCharge Capuchinhos;Avenida Senhor dos Passos, 900;-12.2615;-38.9560;1
+13;FastVolt Queimadinha;Rua Intendente Rui, 50;-12.2805;-38.9445;3
+14;MegaRecarga Sobradinho;Rua Papa João XXIII, 550;-12.2905;-38.9695;2
+15;EletroHub Pedra do Descanso;Avenida Rio de Janeiro, 800;-12.2670;-38.9865;4
+16;ChargePoint Mangabeira;Rua Desembargador Filinto Bastos, 180;-12.2730;-38.9405;1
+17;VoltMax Feira X;Avenida Artêmia Pires, 1400;-12.2355;-38.9210;3
+18;EcoStation CIS;Rua Juracy Magalhães, 280;-12.2485;-38.9770;2
+19;PowerCharge Lagoa Salgada;Rua Buerarema, 70;-12.2945;-38.9515;4
+20;ZapVolt Conceição;Avenida Contorno, 850;-12.2255;-38.9655;1
+21;EcoPower Feira VI;Rua Santo Antônio, 130;-12.2560;-38.9460;3
+22;VoltHub Nova Esperança;Rua Osvaldo Cruz, 420;-12.2415;-38.9685;4
+23;ChargeZone Campo Limpo;Rua Domingos Barbosa de Araújo, 90;-12.2785;-38.9725;2
+24;RecargaPlus Centro;Rua Recife, 160;-12.2545;-38.9615;1
+25;EletroMax Santo Antônio;Rua 13 de Maio, 310;-12.2630;-38.9475;3
+26;PowerStation Jardim Cruzeiro;Avenida Getúlio Vargas, 750;-12.2695;-38.9750;4
+27;ZapCharge Feira IX;Rua Santana, 100;-12.2385;-38.9545;2
+28;EcoVolt Morada das Águas;Rua Dr. João Evangelista, 520;-12.2855;-38.9585;1
+29;SuperCharge Serraria Brasil;Rua Visconde do Rio Branco, 230;-12.2505;-38.9795;3
+30;GreenCharge Gabriela;Avenida Ipanema, 650;-12.2725;-38.9665;4
+31;EletroPoint Feira VII;Rua Frei Caneca, 140;-12.2610;-38.9415;2
+32;VoltStation SIM II;Avenida João Durval Carneiro, 2400;-12.2675;-38.9525;1
+33;ChargeHub Ponto Certo;Rua Dona Eugênia, 320;-12.2440;-38.9730;3
+34;FastCharge Jardim Acácia;Rua Dr. Macário Cerqueira, 70;-12.2765;-38.9465;4
+35;EcoRecarga Conceição II;Avenida Transnordestina, 950;-12.2295;-38.9625;2
+36;PowerVolt Mangabeira II;Rua Leolinda Bacelar, 110;-12.2710;-38.9425;1
+37;ZapHub Feira IV;Rua Geminiano Costa, 380;-12.2575;-38.9695;3
+38;ChargeMax Centro II;Rua Vasco Filho, 190;-12.2535;-38.9660;4
+39;EletroCharge Tomba II;Rua Dr. Olímpio Vital, 620;-12.2650;-38.9835;2
+40;SuperVolt Cidade Nova II;Avenida Eduardo Fróes da Mota, 1150;-12.2320;-38.9575;1
+41;EcoStation Santa Mônica II;Rua Monsenhor Moisés, 110;-12.2465;-38.9505;3
+42;VoltPoint Brasília II;Avenida Governador João Durval Carneiro, 1600;-12.2685;-38.9555;4
+43;PowerHub Muchila II;Rua Domingos Paraguaçu, 290;-12.2745;-38.9680;2
+44;ZapCharge Jomafa II;Avenida José Falcão da Silva, 170;-12.2590;-38.9710;1
+45;ChargeZone Kalilândia II;Rua Professor Germiniano Costa, 510;-12.2580;-38.9745;3
+46;EletroMax SIM III;Rua Dr. João Mangabeira, 220;-12.2510;-38.9620;4
+47;FastVolt Caseb II;Rua Dr. Rodolfo Daltro, 90;-12.2700;-38.9585;2
+48;EcoPower Pedra do Descanso II;Avenida Presidente Dutra, 630;-12.2685;-38.9850;1
+49;SuperCharge Queimadinha II;Rua Dr. José Borja, 160;-12.2815;-38.9455;3
+50;GreenVolt Sobradinho II;Rua Padre Ovídio, 340;-12.2895;-38.9685;4
+51;VoltHub Feira X II;Avenida Noide Cerqueira, 880;-12.2365;-38.9205;2
+52;ChargePoint CIS II;Rua Dr. José Falcão, 130;-12.2475;-38.9765;1
+53;EcoStation Lagoa Salgada II;Rua Itacarambi, 410;-12.2935;-38.9525;3
+54;PowerCharge Conceição III;Avenida Canal, 210;-12.2265;-38.9665;4
+55;ZapVolt Feira VI II;Rua Dr. José Maria de Magalhães, 590;-12.2555;-38.9475;2
+56;EletroCharge Nova Esperança II;Rua Dr. João Durval Carneiro, 80;-12.2405;-38.9690;1
+57;FastCharge Campo Limpo II;Rua Dr. José Tibiriçá, 170;-12.2795;-38.9740;3
+58;MegaRecarga Santo Antônio II;Avenida Eduardo Fróes da Mota, 1750;-12.2335;-38.9565;4
+59;SuperVolt Jardim Cruzeiro II;Rua Dr. José Maria, 310;-12.2710;-38.9775;2
+60;EcoPower Feira IX II;Rua Dr. José Borba, 480;-12.2395;-38.9535;1
+61;VoltStation Morada das Águas II;Avenida Senhor dos Passos, 1150;-12.2845;-38.9595;3
+62;ChargeHub Serraria Brasil II;Rua Dr. José Falcão, 70;-12.2495;-38.9785;4
+63;EletroPoint Gabriela II;Avenida Maria Quitéria, 620;-12.2720;-38.9650;2
+64;PowerMax Feira VII II;Rua Frei Caneca, 160;-12.2600;-38.9425;1
+65;ZapCharge SIM IV;Avenida Getúlio Vargas, 920;-12.2660;-38.9510;3
+66;EcoVolt Ponto Certo II;Rua Dr. José Maria de Magalhães, 230;-12.2430;-38.9720;4
+67;FastCharge Jardim Acácia II;Avenida Eduardo Fróes da Mota, 2450;-12.2760;-38.9475;2
+68;SuperCharge Conceição IV;Rua Dr. José Borja, 290;-12.2285;-38.9635;1
+69;GreenPower Mangabeira III;Avenida Transnordestina, 610;-12.2705;-38.9410;3
+70;VoltHub Feira IV II;Rua Dr. José Falcão da Silva, 140;-12.2565;-38.9700;4
+71;ChargePoint Centro III;Rua Conselheiro Franco, 390;-12.2540;-38.9630;2
+72;EletroMax Tomba III;Avenida Deputado Francisco José Pinto dos Santos, 1180;-12.2640;-38.9825;1
+73;PowerStation Cidade Nova III;Rua Dr. Sabino Silva, 590;-12.2300;-38.9595;3
+74;ZapVolt Santa Mônica III;Rua São Domingos, 210;-12.2445;-38.9485;4
+75;EcoCharge Brasília III;Avenida Governador João Durval Carneiro, 1450;-12.2670;-38.9565;2
+76;VoltMax Muchila III;Rua Castro Alves, 780;-12.2760;-38.9675;1
+77;ChargeHub Jomafa III;Avenida Maria Quitéria, 890;-12.2580;-38.9715;3
+78;EletroPoint Kalilândia III;Rua Barão do Rio Branco, 140;-12.2595;-38.9760;4
+79;FastCharge SIM V;Rua Marechal Deodoro, 320;-12.2515;-38.9610;2
+80;SuperVolt Caseb III;Avenida Eduardo Fróes da Mota, 1950;-12.2345;-38.9550;1
+81;EcoPower Pedra do Descanso III;Rua Dr. João Evangelista, 610;-12.2695;-38.9845;3
+82;VoltStation Queimadinha III;Rua Intendente Rui, 190;-12.2825;-38.9435;4
+83;ChargeMax Sobradinho III;Rua Papa João XXIII, 870;-12.2915;-38.9705;2
+84;EletroCharge Feira X III;Avenida Artêmia Pires, 1230;-12.2375;-38.9215;1
+85;PowerHub CIS III;Rua Juracy Magalhães, 140;-12.2460;-38.9775;3
+86;ZapCharge Lagoa Salgada III;Rua Buerarema, 290;-12.2925;-38.9535;4
+87;EcoVolt Conceição V;Avenida Contorno, 580;-12.2275;-38.9680;2
+88;FastCharge Feira VI III;Rua Santo Antônio, 390;-12.2575;-38.9465;1
+89;SuperCharge Nova Esperança III;Rua Osvaldo Cruz, 790;-12.2400;-38.9695;3
+90;GreenPower Campo Limpo III;Rua Domingos Barbosa de Araújo, 210;-12.2770;-38.9750;4
+91;VoltMax Santo Antônio III;Avenida Senhor dos Passos, 1480;-12.2635;-38.9485;2
+92;ChargePoint Jardim Cruzeiro III;Rua Dr. José Maria, 580;-12.2715;-38.9765;1
+93;EletroHub Feira IX III;Avenida Getúlio Vargas, 1180;-12.2410;-38.9525;3
+94;PowerStation Morada das Águas III;Rua Dr. João Evangelista, 880;-12.2865;-38.9605;4
+95;ZapVolt Serraria Brasil III;Rua Visconde do Rio Branco, 410;-12.2500;-38.9805;2
+96;EcoCharge Gabriela III;Avenida Ipanema, 130;-12.2735;-38.9660;1
+97;VoltHub Feira VII III;Rua Frei Caneca, 290;-12.2620;-38.9430;3
+98;ChargeMax SIM VI;Avenida João Durval Carneiro, 2950;-12.2650;-38.9505;4
+99;EletroPoint Ponto Certo III;Rua Dona Eugênia, 570;-12.2450;-38.9735;2
+100;FastCharge Jardim Acácia III;Avenida Eduardo Fróes da Mota, 2600;-12.2750;-38.9460;1

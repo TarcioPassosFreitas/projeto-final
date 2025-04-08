@@ -1,0 +1,20 @@
+# Usar uma imagem oficial do Python como base
+FROM python:3.11-slim
+
+# Definir o diretório de trabalho dentro do contêiner
+WORKDIR /app
+
+# Copiar o arquivo de requisitos e instalar dependências
+COPY requirements.txt .
+
+# Instalar as dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar o código do backend para dentro do contêiner
+COPY server/ ./server
+
+# Expor a porta que o servidor utilizará 
+EXPOSE 8888
+
+# Comando para rodar o servidor
+CMD ["python", "-u", "server/server.py"]

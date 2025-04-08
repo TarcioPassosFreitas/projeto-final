@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: ./PBL_REDES_1
+      dockerfile: Dockerfile-server
+    container_name: backend-tcp
+    ports:
+      - "8888:8888"
+    networks:
+      - app-network
+
+  frontend-react:
+    build: ./ev-routing-app
+    ports:
+      - "5173:5173"
+      - "4000:4000"
+    networks:
+      - app-network
+    volumes:
+      - ./ev-routing-app:/app
+    stdin_open: true
+    tty: true
+
+networks:
+  app-network:
+    driver: bridge

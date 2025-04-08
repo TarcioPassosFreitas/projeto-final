@@ -1,0 +1,12 @@
+{
+    "user_id": "2ddb7c4a-7c77-4a73-bcf8-4190e8743a28",
+    "user_name": "joao_teste",
+    "user_car": {
+        "brand": "Tesla",
+        "model": "Model 3",
+        "battery_capacity": 75,
+        "current_battery": 45.0,
+        "energy_consumption": 0.15,
+        "max_speed": 261
+    }
+}

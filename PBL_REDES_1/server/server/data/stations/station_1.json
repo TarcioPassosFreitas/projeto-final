@@ -1,0 +1,10 @@
+{
+    "id": 1,
+    "max_slots": 3,
+    "available_slots": 2,
+    "vehicles": {
+        "2ddb7c4a-7c77-4a73-bcf8-4190e8743a28": {
+            "estimated_timestamp": 1744030168.433271
+        }
+    }
+}

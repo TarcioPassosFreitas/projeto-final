@@ -1,0 +1,7 @@
+myvenv
+cache
+tests
+*.png
+__pycache__
+server/data/stations
+server/data/users
