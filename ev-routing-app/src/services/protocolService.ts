@@ -70,10 +70,18 @@ export async function sendMessage(type: ProtocolType, data: Record<string, any>)
 
     console.log(`[EMIT SOCKET] Enviando para backend via socket:\n`, JSON.stringify(payload, null, 2))
 
-  return new Promise((resolve) => {
+    return new Promise((resolve) => {
     socket.emit(type, payload)
+
     socket.on(type, (response: any) => {
       console.log(`[${type}-SERVIDOR]`, response)
+
+      // 💾 Se conter station_models, salvar no localStorage
+      if (response?.data?.station_models) {
+        localStorage.setItem('station_models', JSON.stringify(response.data.station_models))
+        console.log(`[${type}-STATIONS] 🚀 Salvou station_models no localStorage`)
+      }
+
       resolve(response)
     })
   })

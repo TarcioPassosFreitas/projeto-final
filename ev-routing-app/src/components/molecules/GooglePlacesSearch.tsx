@@ -19,10 +19,11 @@ export interface GooglePlacesSearchRef {
 interface GooglePlacesSearchProps {
   onSelectPlace: (placeId: string, description: string) => void
   status: 'idle' | 'pending' | 'confirmed'
+  hideSuggestions?: boolean
 }
 
 const GooglePlacesSearch = forwardRef<GooglePlacesSearchRef, GooglePlacesSearchProps>(
-  ({ onSelectPlace, status }, ref) => {
+  ({ onSelectPlace, status, hideSuggestions }, ref) => {
     const [input, setInput] = useState('')
     const [predictions, setPredictions] = useState<Prediction[]>([])
     const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null)
@@ -73,7 +74,7 @@ const GooglePlacesSearch = forwardRef<GooglePlacesSearchRef, GooglePlacesSearchP
         </div>
 
         {/* Sugestões */}
-        {predictions.length > 0 && (
+        {!hideSuggestions && predictions.length > 0 && (
           <ul className="absolute w-full mt-1 rounded-xl bg-black/80 shadow-lg border border-cyan-400/20 z-40 overflow-hidden max-h-60 overflow-y-auto">
             {predictions.map((p) => (
               <li

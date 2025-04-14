@@ -1,7 +1,15 @@
 import { motion } from 'framer-motion'
 import type { Map as LeafletMap } from 'leaflet'
 import L, { LatLngTuple } from 'leaflet'
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
+import { useNavigate } from 'react-router-dom'
+import TowTruckInfoModal from '../molecules/TowTruckInfoModal'
+
+
+import { getDistance } from 'geolib'
 import {
   AlertTriangle,
   LocateFixed,
@@ -17,22 +25,33 @@ import {
   TileLayer,
   Tooltip
 } from 'react-leaflet'
-import { FuelStation, getFuelStationsAlongRoute } from '../../services/fuelStations'
+import { FuelStation } from '../../services/fuelStations'
 import { reverseGeocode } from '../../services/geocode'
 import { getPlaceDetails } from '../../services/google'
 import { sendMessage } from '../../services/protocolService'
 import { getRouteFromORS } from '../../services/route'
-import { VITE_USE_MOCK } from '../../utils/constants'
 import { wait } from '../../utils/wait'
 import CancelRouteModal from '../molecules/CancelRouteModal'
 import ConfirmationModal from '../molecules/ConfirmationModal'
 import GooglePlacesSearch, { GooglePlacesSearchRef } from '../molecules/GooglePlacesSearch'
 import NearestStationModal from '../molecules/NearestStationModal'
+import ReservationSuccessModal from '../molecules/ReservationSuccessModal'
 import SuccessNavigationModal from '../molecules/SuccessNavigationModal'
+
+
+delete (L.Icon.Default.prototype as any)._getIconUrl
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+})
+
 
 
 
 export default function FuturisticMapFrame() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState(0)
   const [mapReady, setMapReady] = useState(false)
@@ -59,6 +78,19 @@ export default function FuturisticMapFrame() {
   const [, setShowTowingModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
 
+  const [proceedToSelectionStation, setProceedToSelectionStation] = useState(false);
+  const [suggestedStationMessage, setSuggestedStationMessage] = useState('');
+
+  const [showTowTruckModal, setShowTowTruckModal] = useState(false)
+
+  const [showReservationModal, setShowReservationModal] = useState(false)
+  const [reservationMessage, setReservationMessage] = useState('')
+  const [stationRoute, setStationRoute] = useState<LatLngTuple[]>([])
+
+  const [pendingStationRoute, setPendingStationRoute] = useState<LatLngTuple[]>([])
+
+
+
 
 
   useEffect(() => {
@@ -75,6 +107,93 @@ export default function FuturisticMapFrame() {
     }, 100)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    const raw = localStorage.getItem('station_models')
+    if (raw) {
+      const data = JSON.parse(raw)
+      const parsed = Object.entries(data).map(([id, value]: [string, any]) => ({
+        id: Number(id),
+        name: value.name_station,
+        address: value.address,
+        lat: parseFloat(value.latitude),
+        lon: parseFloat(value.longitude)
+      }))
+      setFuelStations(parsed)
+    }
+  }, [])
+
+  useEffect(() => {
+  const continuar = async () => {
+    if (!proceedToSelectionStation) return;
+    setProceedToSelectionStation(false);
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) return;
+
+    let stations: FuelStation[] = [];
+    const raw = localStorage.getItem('station_models');
+    if (raw) {
+      const parsed = JSON.parse(raw || '{}');
+      stations = Object.entries(parsed).map(([id, value]: [string, any]) => ({
+        id: Number(id),
+        name: value.name_station,
+        address: value.address,
+        lat: parseFloat(value.latitude),
+        lon: parseFloat(value.longitude)
+      }));
+    }
+    setFuelStations(stations);
+
+    const list_stations = Object.fromEntries(
+      stations.map((station) => {
+        const dist = Math.sqrt(
+          Math.pow(station.lat - currentPos[0], 2) +
+          Math.pow(station.lon - currentPos[1], 2)
+        ) * 111;
+        return [station.id, { distance_origin_position: Number(dist.toFixed(2)) }];
+      })
+    );
+
+    const selectionResponse = await sendMessage('SELECTION_STATION', {
+      user_id: userId,
+      list_stations
+    });
+
+    if (selectionResponse?.status?.code === 404) {
+      setWarningMessage(selectionResponse?.data?.message || 'Posto de recarga indisponível.');
+      setShowWarningModal(true);
+      setRoutePoints([]);
+      setFuelStations([]);
+      setConfirming('idle');
+      setOriginLabel('');
+      setDestinationLabel('');
+      searchRef.current?.clearInput();
+      return;
+    }
+
+    if (selectionResponse?.status?.code === 200 && selectionResponse?.data?.id_station === null) {
+      setWarningMessage(selectionResponse.data.message || 'Nenhum posto disponível.');
+      setShowTowingModal(true);
+      localStorage.removeItem('user_id');
+      return;
+    }
+
+    const selectedId = selectionResponse?.data?.id_station;
+    if (selectedId && stations.length > 0) {
+      const selectedStation = stations.find((s) => String(s.id) === String(selectedId));
+      if (selectedStation) {
+        setSelectedStationId(selectedId);
+        setSelectedStationName(selectedStation.name || '');
+        setSuggestedStationMessage(selectionResponse.data.message || '');
+        setShowStationChoiceModal(true);
+      }
+    }
+  };
+
+  continuar();
+}, [proceedToSelectionStation]);
+
 
   const handleRecenter = () => {
     const zoom = mapRef.current?.getZoom()
@@ -118,7 +237,16 @@ export default function FuturisticMapFrame() {
         return
       }
 
-      const distanceKm = cleanedRoute.length * 0.03
+      const distanceKm = cleanedRoute.reduce((total, curr, index, arr) => {
+        if (index === 0) return 0
+        const prev = arr[index - 1]
+        return total + getDistance(
+          { latitude: prev[0], longitude: prev[1] },
+          { latitude: curr[0], longitude: curr[1] }
+        )
+      }, 0) / 1000
+
+      
       const navResponse = await sendMessage('NAVIGATION', {
         user_id: userId,
         route_distance: Number(distanceKm.toFixed(2))
@@ -128,6 +256,8 @@ export default function FuturisticMapFrame() {
         setWarningMessage(navResponse.data.message)
         setAutonomy(navResponse.data.autonomy)
         setShowWarningModal(true)
+        setModalOpen(false)
+        return;
       } else {
         setWarningMessage('Você conseguirá chegar ao destino com sua autonomia atual. Boa viagem!')
         setAutonomy(navResponse.data.autonomy)
@@ -139,74 +269,7 @@ export default function FuturisticMapFrame() {
 
 
 
-      await wait(1000)
-
-      let stations: FuelStation[] = []
-      if (VITE_USE_MOCK) {
-        const stored = localStorage.getItem('mock_stations')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          stations = Object.entries(parsed).map(([id, value]: [string, any]) => ({
-            id: Number(id),
-            name: value.name_station,
-            address: value.address,
-            lat: value.latitude,
-            lon: value.longitude
-          }))
-        }
-      } else {
-        stations = await getFuelStationsAlongRoute(cleanedRoute)
-      }
-
-      setFuelStations(stations)
-
-      const list_stations = Object.fromEntries(
-        stations.map((station) => {
-          const dist = Math.sqrt(
-            Math.pow(station.lat - currentPos[0], 2) +
-            Math.pow(station.lon - currentPos[1], 2)
-          ) * 111
-          return [station.id, { distance_origin_position: Number(dist.toFixed(2)) }]
-        })
-      )
-
-      const selectionResponse = await sendMessage('SELECTION_STATION', {
-        user_id: userId,
-        list_stations
-      })
-
-      console.log('[DEBUG] RESPOSTA SELECTION_STATION:', selectionResponse)
-
-      if (selectionResponse?.status?.code === 404) {
-        setWarningMessage(selectionResponse?.data?.message || 'Posto de recarga indisponível.')
-        setShowWarningModal(true)
-        setRoutePoints([])
-        setFuelStations([])
-        setConfirming('idle')
-        setOriginLabel('')
-        setDestinationLabel('')
-        searchRef.current?.clearInput()
-        return
-      }
-
-      if (selectionResponse?.status?.code === 200 && selectionResponse?.data?.id_station === null) {
-        setWarningMessage(selectionResponse.data.message || 'Nenhum posto disponível.')
-        setShowTowingModal(true)
-        localStorage.removeItem('user_id')
-        return
-      }
-
-      const selectedId = selectionResponse?.data?.id_station
-      if (selectedId && stations.length > 0) {
-        const selectedStation = stations.find((s) => String(s.id) === String(selectedId))
-        if (selectedStation) {
-          setSelectedStationId(selectedId)
-          setSelectedStationName(selectedStation.name || '')
-          setShowStationChoiceModal(true)
-        }
-      }
-
-      searchRef.current?.clearInput()
+      
     }
     setModalOpen(false)
   }
@@ -221,11 +284,13 @@ export default function FuturisticMapFrame() {
     setDestinationLabel('')
     searchRef.current?.clearInput()
     setCancelModalOpen(false)
+    setStationRoute([])
+
   }
 
   const handleRejectStation = () => {
     setShowStationChoiceModal(false)
-    setShowTowingModal(true)
+    setShowTowTruckModal(true)
     localStorage.removeItem('user_id')
   }
 
@@ -240,6 +305,7 @@ export default function FuturisticMapFrame() {
             onSelectPlace={handleSelectPlace}
             status={confirming}
             ref={searchRef}
+            hideSuggestions={confirming === 'confirmed'}
           />
         </div>
         <div className="relative flex-1 overflow-hidden">
@@ -263,6 +329,15 @@ export default function FuturisticMapFrame() {
                   <Polyline positions={routePoints} color="orange" weight={6} />
                 </>
               )}
+
+              {stationRoute.length > 0 && (
+  <>
+    {console.log('[MAPA] Desenhando rota roxa:', stationRoute)}
+    <Polyline positions={stationRoute} color="purple" weight={6} />
+  </>
+)}
+
+
               {fuelStations.map((station) => (
                 <Marker
                   key={station.id}
@@ -346,45 +421,84 @@ export default function FuturisticMapFrame() {
                 <p className="text-white mb-2 font-semibold">{warningMessage}</p>
                 {autonomy !== null && <p className="text-neutral-300 text-sm">Autonomia atual: {autonomy} km</p>}
                 <button
-                  onClick={() => setShowWarningModal(false)}
+                  onClick={() => {
+                    setShowWarningModal(false);
+                    setProceedToSelectionStation(true); // ✅ Agora só continua depois do usuário clicar
+                  }}
                   className="mt-4 bg-yellow-600 hover:bg-yellow-500 text-white font-semibold px-4 py-2 rounded-full"
                 >
                   Entendi
                 </button>
+
               </div>
             </div>
           )}
 
           <NearestStationModal
             isOpen={showStationChoiceModal}
-            stationName={selectedStationName}
+            stationName={suggestedStationMessage || selectedStationName}
             onConfirm={async () => {
-              setShowStationChoiceModal(false);
+  setShowStationChoiceModal(false)
 
-              const user_id = localStorage.getItem('user_id') || '';
-              const id_station = selectedStationId;
+  const user_id = localStorage.getItem('user_id') || ''
+  const id_station = selectedStationId
 
-              const response = await sendMessage('PAYMENT', {
-                user_id,
-                id_station,
-                confirmation: true,
-              });
+  console.log('[PAYMENT] Enviando mensagem com:', {
+    user_id,
+    id_station,
+    confirmation: true,
+  })
 
-              if (response?.status?.code === 200 && response.data.confirmation) {
-                const mockStations = JSON.parse(localStorage.getItem('mock_stations') || '{}');
-                const posto = mockStations[id_station!];
-                const pos: LatLngTuple = [posto.latitude, posto.longitude];
+  const response = await sendMessage('PAYMENT', {
+    user_id,
+    id_station,
+    confirmation: true,
+  })
 
-                const newRoute = await getRouteFromORS(currentPos, pos);
-                const cleanedNewRoute = newRoute.map(([lat, lng]) => [lat, lng] as [number, number]);
+  console.log('[PAYMENT] Resposta do backend:', response)
+  
 
-                setRoutePoints(cleanedNewRoute);
-                setDestinationLabel(posto.name_station);
-              } else {
-                setShowTowingModal(true);
-                localStorage.removeItem('user_id');
-              }
-            }}
+  if (response?.status?.code === 200 && response.data?.confirmation) {
+    const mockStations = JSON.parse(localStorage.getItem('station_models') || '{}')
+    console.log('object.values',Object.values(mockStations))
+    const posto = mockStations[String(id_station)]
+
+
+console.log('[PAYMENT] Posto mock encontrado todos:', mockStations)
+    console.log('[PAYMENT] Posto mock encontrado:', mockStations[Number(id_station)])
+    console.log('[PAYMENT] Posto mock encontrado string:', mockStations[String(id_station)])
+
+    console.log('[POSTO SELECIONADO]', posto)
+
+    if (!posto) {
+      console.warn('[ERRO] Posto não encontrado com ID:', id_station)
+      return
+    }
+
+    const pos: LatLngTuple = [
+  parseFloat(posto.latitude),
+  parseFloat(posto.longitude)
+]
+
+    const purpleRoute = await getRouteFromORS(currentPos, pos)
+    
+    console.log('[ROTA ROXA] Rota calculada do usuário até o posto:', purpleRoute)
+
+    const cleanedPurpleRoute = purpleRoute.map(([lat, lng]) => [lat, lng] as LatLngTuple)
+
+    console.log('[ROTA ROXA]', cleanedPurpleRoute)
+
+    setPendingStationRoute(cleanedPurpleRoute)
+    setReservationMessage(response.data.message)
+    setShowReservationModal(true)
+  } else {
+    console.warn('[FALHA] Retorno negativo no PAYMENT:', response)
+    setShowTowTruckModal(true)
+    localStorage.removeItem('user_id')
+  }
+}}
+
+
             onReject={handleRejectStation}
           />
           <SuccessNavigationModal
@@ -392,8 +506,38 @@ export default function FuturisticMapFrame() {
             onClose={() => setShowSuccessModal(false)}
             message={warningMessage}
           />
+
+          <TowTruckInfoModal
+            isOpen={showTowTruckModal}
+            onClose={() => {
+              setShowTowTruckModal(false)
+              localStorage.removeItem('user_id')
+              setRoutePoints([])
+              setFuelStations([])
+              setOriginLabel('')
+              setDestinationLabel('')
+              setConfirming('idle')
+              searchRef.current?.clearInput()
+              navigate('/')
+            }}
+          />
+
+          <ReservationSuccessModal
+  isOpen={showReservationModal}
+  message={reservationMessage}
+  onProceed={() => {
+    console.log('[PROSSEGUIR] Exibindo rota roxa:', pendingStationRoute)
+    setStationRoute(pendingStationRoute)
+    setPendingStationRoute([])
+    setShowReservationModal(false)
+  }}
+/>
+
+
+
         </div>
       </div>
     </div>
   )
 }
+
