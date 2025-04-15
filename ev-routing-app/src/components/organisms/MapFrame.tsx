@@ -55,7 +55,7 @@ export default function FuturisticMapFrame() {
   const [loading, setLoading] = useState(true)
   const [progress, setProgress] = useState(0)
   const [mapReady, setMapReady] = useState(false)
-  const [currentPos] = useState<LatLngTuple>([-12.262, -38.957])
+  const [currentPos, setCurrentPos] = useState<LatLngTuple | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [pendingPlaceId, setPendingPlaceId] = useState<string | null>(null)
@@ -89,6 +89,8 @@ export default function FuturisticMapFrame() {
 
   const [pendingStationRoute, setPendingStationRoute] = useState<LatLngTuple[]>([])
 
+  const [vehiclePosition, setVehiclePosition] = useState<LatLngTuple | null>(null)
+  const [simulating, setSimulating] = useState(false)
 
 
 
@@ -107,6 +109,25 @@ export default function FuturisticMapFrame() {
     }, 100)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const coords: LatLngTuple = [
+        position.coords.latitude,
+        position.coords.longitude
+      ]
+      console.log('[GEO] Localização atual detectada:', coords)
+      setCurrentPos(coords)
+    },
+    (error) => {
+      console.error('[GEO] Erro ao obter localização:', error)
+      // fallback para a posição padrão se desejar
+      setCurrentPos([-12.262, -38.957])
+    }
+  )
+}, [])
+
 
   useEffect(() => {
     const raw = localStorage.getItem('station_models')
@@ -145,6 +166,8 @@ export default function FuturisticMapFrame() {
     }
     setFuelStations(stations);
 
+    if (!currentPos) return;
+
     const list_stations = Object.fromEntries(
       stations.map((station) => {
         const dist = Math.sqrt(
@@ -153,7 +176,8 @@ export default function FuturisticMapFrame() {
         ) * 111;
         return [station.id, { distance_origin_position: Number(dist.toFixed(2)) }];
       })
-    );
+    )
+
 
     const selectionResponse = await sendMessage('SELECTION_STATION', {
       user_id: userId,
@@ -194,13 +218,24 @@ export default function FuturisticMapFrame() {
   continuar();
 }, [proceedToSelectionStation]);
 
+  const simulateMovement = async (path: LatLngTuple[]) => {
+    setSimulating(true)
+    for (let i = 0; i < path.length; i++) {
+      setVehiclePosition(path[i])
+      await wait(500) // Velocidade constante: 500ms por ponto
+    }
+    setSimulating(false)
+  }
+
 
   const handleRecenter = () => {
+    if (!currentPos) return;
     const zoom = mapRef.current?.getZoom()
     if (mapRef.current && zoom !== undefined) {
       mapRef.current.setView(currentPos, zoom)
     }
   }
+
 
   const handleSelectPlace = (placeId: string, description: string) => {
     setPendingPlaceId(placeId)
@@ -214,7 +249,9 @@ export default function FuturisticMapFrame() {
     const details = await getPlaceDetails(pendingPlaceId)
     if (details) {
       const end: [number, number] = [details.lat, details.lng]
-      const start: [number, number] = [currentPos[0], currentPos[1]]
+      if (!currentPos) return
+        const start: [number, number] = [currentPos[0], currentPos[1]]
+
 
       const route = await getRouteFromORS(start, end)
       const cleanedRoute = route.map(([lat, lng]) => [lat, lng] as [number, number])
@@ -262,8 +299,11 @@ export default function FuturisticMapFrame() {
         setWarningMessage('Você conseguirá chegar ao destino com sua autonomia atual. Boa viagem!')
         setAutonomy(navResponse.data.autonomy)
         setShowSuccessModal(true)
+        await simulateMovement(cleanedRoute)
         searchRef.current?.clearInput()
         setModalOpen(false)
+        setPendingPlaceId(null)
+        setPendingPlaceName('')
         return
       }
 
@@ -309,7 +349,7 @@ export default function FuturisticMapFrame() {
           />
         </div>
         <div className="relative flex-1 overflow-hidden">
-          {mapReady && (
+          {mapReady && currentPos && (
             <MapContainer
               center={currentPos}
               zoom={13}
@@ -331,11 +371,17 @@ export default function FuturisticMapFrame() {
               )}
 
               {stationRoute.length > 0 && (
-  <>
-    {console.log('[MAPA] Desenhando rota roxa:', stationRoute)}
-    <Polyline positions={stationRoute} color="purple" weight={6} />
-  </>
-)}
+            <>
+              {console.log('[MAPA] Desenhando rota roxa:', stationRoute)}
+              <Polyline positions={stationRoute} color="purple" weight={6} />
+            </>
+          )}
+          {vehiclePosition && (
+            <Marker position={vehiclePosition}>
+              <Tooltip>Carro</Tooltip>
+            </Marker>
+          )}
+
 
 
               {fuelStations.map((station) => (
@@ -480,7 +526,10 @@ console.log('[PAYMENT] Posto mock encontrado todos:', mockStations)
   parseFloat(posto.longitude)
 ]
 
+    if (!currentPos) return;
+
     const purpleRoute = await getRouteFromORS(currentPos, pos)
+
     
     console.log('[ROTA ROXA] Rota calculada do usuário até o posto:', purpleRoute)
 
@@ -523,17 +572,26 @@ console.log('[PAYMENT] Posto mock encontrado todos:', mockStations)
           />
 
           <ReservationSuccessModal
-  isOpen={showReservationModal}
-  message={reservationMessage}
-  onProceed={() => {
-    console.log('[PROSSEGUIR] Exibindo rota roxa:', pendingStationRoute)
-    setStationRoute(pendingStationRoute)
-    setPendingStationRoute([])
-    setShowReservationModal(false)
-  }}
-/>
+            isOpen={showReservationModal}
+            message={reservationMessage}
+            onProceed={async () => {
+              console.log('[PROSSEGUIR] Iniciando simulação...')
+              setShowReservationModal(false)
 
+              if (pendingStationRoute.length > 0) {
+                await simulateMovement(pendingStationRoute)
+              }
 
+              if (routePoints.length > 0) {
+                await simulateMovement(routePoints)
+              }
+            }}
+          />
+          {simulating && (
+            <div className="absolute top-0 left-0 right-0 bg-black/80 text-white p-2 text-center z-[1000]">
+              🚗 Simulando movimento...
+            </div>
+          )}
 
         </div>
       </div>
